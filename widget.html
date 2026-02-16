@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        --s: 1;
+      }
+      body {
+        background: transparent;
+        overflow: hidden;
+        user-select: none;
+        -webkit-app-region: no-drag;
+      }
+      .w {
+        background: rgba(13, 17, 23, 0.92);
+        border: 2px solid rgba(88, 166, 255, 0.25);
+        border-radius: calc(16px * var(--s));
+        padding: calc(8px * var(--s)) calc(18px * var(--s));
+        display: flex;
+        align-items: center;
+        gap: calc(14px * var(--s));
+        backdrop-filter: blur(20px);
+        -webkit-app-region: drag;
+        position: relative;
+        height: 100vh;
+        width: 100vw;
+        transition: border-color 0.2s;
+      }
+      .w:hover {
+        border-color: rgba(88, 166, 255, 0.5);
+      }
+      .w.al {
+        border-color: rgba(248, 81, 73, 0.6);
+        animation: wa 1s ease-in-out infinite;
+      }
+      @keyframes wa {
+        0%,
+        100% {
+          border-color: rgba(248, 81, 73, 0.3);
+        }
+        50% {
+          border-color: rgba(248, 81, 73, 0.8);
+        }
+      }
+      .td {
+        font-family: Consolas, "Courier New", monospace;
+        font-size: calc(38px * var(--s));
+        font-weight: 700;
+        letter-spacing: calc(3px * var(--s));
+        color: #58a6ff;
+        text-shadow: 0 0 calc(20px * var(--s)) rgba(88, 166, 255, 0.3);
+        transition:
+          color 0.3s,
+          text-shadow 0.3s;
+        white-space: nowrap;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+      .td.r {
+        color: #3fb950;
+        text-shadow: 0 0 calc(20px * var(--s)) rgba(63, 185, 80, 0.3);
+      }
+      .td.p {
+        color: #d29922;
+        text-shadow: 0 0 calc(20px * var(--s)) rgba(210, 153, 34, 0.3);
+      }
+      .td.f {
+        color: #f85149;
+        text-shadow: 0 0 calc(25px * var(--s)) rgba(248, 81, 73, 0.5);
+        animation: pu 0.6s ease-in-out infinite;
+      }
+      @keyframes pu {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+      .rc {
+        width: calc(48px * var(--s));
+        height: calc(48px * var(--s));
+        flex-shrink: 0;
+        position: relative;
+      }
+      .rc svg {
+        transform: rotate(-90deg);
+        width: 100%;
+        height: 100%;
+      }
+      .rb {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.07);
+        stroke-width: 4;
+      }
+      .rf {
+        fill: none;
+        stroke: #3fb950;
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-dasharray: 126;
+        stroke-dashoffset: 0;
+        transition:
+          stroke-dashoffset 0.5s linear,
+          stroke 0.3s;
+      }
+      .rf.p {
+        stroke: #d29922;
+      }
+      .rf.f {
+        stroke: #f85149;
+      }
+      .rf.i {
+        stroke: #30363d;
+      }
+      .rp {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: "Segoe UI", sans-serif;
+        font-size: calc(11px * var(--s));
+        font-weight: 700;
+        color: #8b949e;
+      }
+      .sl {
+        position: absolute;
+        top: calc(4px * var(--s));
+        left: calc(18px * var(--s));
+        font-family: "Segoe UI", sans-serif;
+        font-size: calc(9px * var(--s));
+        text-transform: uppercase;
+        letter-spacing: calc(2px * var(--s));
+        color: #484f58;
+      }
+      .cs {
+        display: flex;
+        flex-direction: column;
+        gap: calc(3px * var(--s));
+        -webkit-app-region: no-drag;
+        margin-left: auto;
+        opacity: 0;
+        transition: opacity 0.2s;
+        flex-shrink: 0;
+      }
+      .w:hover .cs {
+        opacity: 1;
+      }
+      .cb {
+        width: calc(26px * var(--s));
+        height: calc(22px * var(--s));
+        border: none;
+        border-radius: calc(5px * var(--s));
+        background: rgba(255, 255, 255, 0.06);
+        color: #8b949e;
+        font-size: calc(11px * var(--s));
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+        -webkit-app-region: no-drag;
+      }
+      .cb:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: #e6edf3;
+        transform: scale(1.1);
+      }
+      .cb.pa:hover {
+        color: #d29922;
+      }
+      .cb.so:hover {
+        color: #f85149;
+      }
+      .cb.cl:hover {
+        color: #f85149;
+      }
+      .dm {
+        display: none;
+        -webkit-app-region: no-drag;
+        width: calc(32px * var(--s));
+        height: calc(32px * var(--s));
+        min-width: 22px;
+        min-height: 22px;
+        padding: 0;
+        border: 2px solid #f85149;
+        border-radius: 50%;
+        background: rgba(248, 81, 73, 0.15);
+        color: #f85149;
+        font-size: calc(14px * var(--s));
+        cursor: pointer;
+        margin-left: auto;
+        flex-shrink: 0;
+        transition: all 0.15s;
+        align-items: center;
+        justify-content: center;
+        animation: dp 1.5s ease-in-out infinite;
+      }
+      .dm:hover {
+        background: #f85149;
+        color: #fff;
+        transform: scale(1.15);
+      }
+      .dm.a {
+        display: flex;
+      }
+      @keyframes dp {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(248, 81, 73, 0.4);
+        }
+        50% {
+          box-shadow: 0 0 12px 4px rgba(248, 81, 73, 0.2);
+        }
+      }
+      .sb {
+        position: absolute;
+        bottom: calc(3px * var(--s));
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: calc(3px * var(--s));
+        opacity: 0;
+        transition: opacity 0.2s;
+        -webkit-app-region: no-drag;
+      }
+      .w:hover .sb {
+        opacity: 0.6;
+      }
+      .w:hover .sb:hover {
+        opacity: 1;
+      }
+      .sd {
+        width: calc(8px * var(--s));
+        height: calc(4px * var(--s));
+        min-width: 5px;
+        min-height: 3px;
+        border-radius: 2px;
+        background: #484f58;
+        cursor: pointer;
+        transition: all 0.15s;
+        border: none;
+        -webkit-app-region: no-drag;
+      }
+      .sd:hover {
+        background: #89b4fa;
+        transform: scaleY(1.8);
+      }
+      .sd.ac {
+        background: #58a6ff;
+      }
+      .rh {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: calc(18px * var(--s));
+        height: calc(18px * var(--s));
+        min-width: 12px;
+        min-height: 12px;
+        cursor: nwse-resize;
+        -webkit-app-region: no-drag;
+        opacity: 0;
+        transition: opacity 0.2s;
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+        padding: 2px;
+      }
+      .w:hover .rh {
+        opacity: 0.4;
+      }
+      .rh:hover {
+        opacity: 1 !important;
+      }
+      .rd {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5px;
+      }
+      .rd span {
+        width: 2.5px;
+        height: 2.5px;
+        border-radius: 50%;
+        background: #58a6ff;
+      }
+      .rd span:nth-child(1),
+      .rd span:nth-child(2),
+      .rd span:nth-child(4) {
+        background: transparent;
+      }
+      .st {
+        position: absolute;
+        top: calc(-28px * var(--s));
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(13, 17, 23, 0.95);
+        border: 1px solid rgba(88, 166, 255, 0.3);
+        border-radius: 6px;
+        padding: 3px 10px;
+        font-family: "Segoe UI", sans-serif;
+        font-size: 11px;
+        color: #8b949e;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.15s;
+      }
+      .st.v {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="w" id="w">
+      <span class="sl" id="sl">TIMER</span>
+      <div class="st" id="stt">Medium</div>
+      <div class="rc">
+        <svg viewBox="0 0 44 44">
+          <circle class="rb" cx="22" cy="22" r="20" />
+          <circle class="rf" id="rf" cx="22" cy="22" r="20" /></svg
+        ><span class="rp" id="rp">0%</span>
+      </div>
+      <div class="td" id="td">00:00</div>
+      <button class="dm" id="dm" title="Dismiss Alarm">🔕</button>
+      <div class="cs">
+        <button class="cb pa" id="pb" title="Pause">⏸</button
+        ><button class="cb so" id="sb" title="Stop">⏹</button
+        ><button class="cb cl" id="xb" title="Hide">✕</button>
+      </div>
+      <div class="sb" id="szb"></div>
+      <div class="rh" id="rh" title="Drag to resize">
+        <div class="rd">
+          <span></span><span></span><span></span><span></span><span></span
+          ><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        "use strict";
+        const $ = (id) => document.getElementById(id);
+        const w = $("w"),
+          td = $("td"),
+          rf = $("rf"),
+          rp = $("rp"),
+          sl = $("sl");
+        const dm = $("dm"),
+          pb = $("pb"),
+          sb = $("sb"),
+          xb = $("xb");
+        const rh = $("rh"),
+          stt = $("stt"),
+          szb = $("szb");
+
+        const C = 2 * Math.PI * 20;
+        let cur = {},
+          prevD = "",
+          prevC = "",
+          prevP = -1,
+          prevR = "",
+          ttT = null,
+          resizing = false;
+
+        const sizes = ["tiny", "small", "medium", "large", "xlarge", "huge"];
+        const dots = [];
+        sizes.forEach((s) => {
+          const b = document.createElement("button");
+          b.className = "sd" + (s === "medium" ? " ac" : "");
+          b.dataset.size = s;
+          b.title = s[0].toUpperCase() + s.slice(1);
+          b.onclick = () => window.widgetAPI.setSize(s);
+          szb.appendChild(b);
+          dots.push(b);
+        });
+
+        pb.onclick = () =>
+          window.widgetAPI.action(cur.paused ? "resume" : "pause");
+        sb.onclick = () => window.widgetAPI.action("stop");
+        xb.onclick = () => window.widgetAPI.action("hide");
+        dm.onclick = () => {
+          dm.classList.remove("a");
+          w.classList.remove("al");
+          window.widgetAPI.action("dismiss");
+        };
+
+        document.onwheel = (e) => {
+          e.preventDefault();
+          window.widgetAPI.scrollResize(e.deltaY);
+        };
+
+        rh.onmousedown = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          resizing = true;
+          document.body.style.cursor = "nwse-resize";
+          window.widgetAPI.resizeStart();
+        };
+        document.onmouseup = () => {
+          if (resizing) {
+            resizing = false;
+            document.body.style.cursor = "";
+            window.widgetAPI.resizeEnd();
+          }
+        };
+
+        window.widgetAPI.onScaleUpdate((d) => {
+          document.documentElement.style.setProperty("--s", d.scale);
+          for (let i = 0; i < dots.length; i++)
+            dots[i].classList.toggle("ac", dots[i].dataset.size === d.sizeKey);
+          stt.textContent =
+            d.sizeKey === "custom"
+              ? d.width + "×" + d.height
+              : d.sizeKey[0].toUpperCase() + d.sizeKey.slice(1);
+          stt.classList.add("v");
+          if (ttT) clearTimeout(ttT);
+          ttT = setTimeout(() => {
+            stt.classList.remove("v");
+            ttT = null;
+          }, 1200);
+        });
+
+        window.widgetAPI.onUpdate((d) => {
+          cur = d;
+          if (d.display !== prevD) {
+            prevD = d.display;
+            td.textContent = d.display;
+          }
+          const c = d.running && !d.paused ? "r" : d.paused ? "p" : "";
+          if (c !== prevC) {
+            prevC = c;
+            td.className = "td" + (c ? " " + c : "");
+          }
+          sl.textContent =
+            d.running && !d.paused ? "RUNNING" : d.paused ? "PAUSED" : "TIMER";
+          const p = d.initial > 0 ? ((d.remaining / d.initial) * 100) | 0 : 0;
+          if (p !== prevP) {
+            prevP = p;
+            rf.style.strokeDasharray = C;
+            rf.style.strokeDashoffset = C * (1 - p / 100);
+            rp.textContent = p + "%";
+          }
+          const rc = d.paused ? "p" : !d.running ? "i" : "";
+          if (rc !== prevR) {
+            prevR = rc;
+            rf.className.baseVal = "rf" + (rc ? " " + rc : "");
+          }
+          if (d.paused) {
+            pb.textContent = "▶";
+            pb.title = "Resume";
+            pb.className = "cb";
+          } else {
+            pb.textContent = "⏸";
+            pb.title = "Pause";
+            pb.className = "cb pa";
+          }
+        });
+
+        window.widgetAPI.onAlarmVisual(() => {
+          dm.classList.add("a");
+          w.classList.add("al");
+        });
+        window.widgetAPI.onAlarmDismissed(() => {
+          dm.classList.remove("a");
+          w.classList.remove("al");
+        });
+        window.widgetAPI.onFinished(() => {
+          td.textContent = "00:00";
+          td.className = "td f";
+          rf.className.baseVal = "rf f";
+          sl.textContent = "TIME'S UP!";
+          rp.textContent = "0%";
+          prevD = "00:00";
+          prevC = "f";
+          prevP = 0;
+          prevR = "f";
+        });
+      })();
+    </script>
+  </body>
+</html>

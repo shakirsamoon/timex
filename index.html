@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Timex</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: #0d1117;
+        color: #e6edf3;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        overflow-y: auto;
+        user-select: none;
+        padding: 20px 0;
+      }
+      .app {
+        width: 370px;
+        text-align: center;
+      }
+      .header {
+        font-size: 14px;
+        color: #8b949e;
+        margin-bottom: 20px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+      .countdown {
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 64px;
+        font-weight: 700;
+        color: #58a6ff;
+        letter-spacing: 4px;
+        margin-bottom: 8px;
+        min-height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.3s;
+      }
+      .countdown.running {
+        color: #3fb950;
+      }
+      .countdown.paused {
+        color: #d29922;
+      }
+      .countdown.finished {
+        color: #f85149;
+        animation: pulse 0.8s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+      .progress-track {
+        height: 6px;
+        background: #21262d;
+        border-radius: 3px;
+        margin: 0 20px 20px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(90deg, #3fb950, #58a6ff);
+        border-radius: 3px;
+        transition: width 0.4s linear;
+      }
+      .progress-fill.paused {
+        background: #d29922;
+      }
+      .progress-fill.finished {
+        background: #f85149;
+        width: 0% !important;
+      }
+      .status {
+        font-size: 13px;
+        color: #8b949e;
+        margin-bottom: 20px;
+        height: 20px;
+      }
+      .alarm-banner {
+        background: rgba(248, 81, 73, 0.15);
+        border: 1px solid rgba(248, 81, 73, 0.4);
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 16px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        animation: ap 1s ease-in-out infinite;
+      }
+      .alarm-banner.active {
+        display: flex;
+      }
+      @keyframes ap {
+        0%,
+        100% {
+          background: rgba(248, 81, 73, 0.1);
+        }
+        50% {
+          background: rgba(248, 81, 73, 0.25);
+        }
+      }
+      .alarm-banner span {
+        color: #f85149;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .btn-dismiss {
+        padding: 8px 20px;
+        border-radius: 8px;
+        background: #f85149;
+        color: #fff;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        transition: transform 0.1s;
+      }
+      .btn-dismiss:hover {
+        transform: scale(1.05);
+      }
+      .time-inputs {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .time-input-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .time-input-group label {
+        font-size: 10px;
+        color: #8b949e;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .time-input-group input {
+        width: 72px;
+        height: 52px;
+        background: #161b22;
+        border: 2px solid #30363d;
+        border-radius: 10px;
+        color: #e6edf3;
+        font-family: Consolas, monospace;
+        font-size: 24px;
+        text-align: center;
+        outline: none;
+        transition: border-color 0.2s;
+        -moz-appearance: textfield;
+      }
+      .time-input-group input::-webkit-outer-spin-button,
+      .time-input-group input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+      }
+      .time-input-group input:focus {
+        border-color: #58a6ff;
+      }
+      .time-sep {
+        font-size: 28px;
+        font-weight: 700;
+        color: #484f58;
+        margin-top: 14px;
+      }
+      .presets {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        margin-bottom: 16px;
+      }
+      .preset-btn {
+        padding: 6px 14px;
+        background: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 20px;
+        color: #8b949e;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .preset-btn:hover {
+        background: #1f2937;
+        border-color: #58a6ff;
+        color: #58a6ff;
+      }
+      .btn {
+        padding: 12px 32px;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        letter-spacing: 1px;
+      }
+      .btn-start {
+        background: linear-gradient(135deg, #238636, #2ea043);
+        color: #fff;
+        width: 200px;
+      }
+      .btn-start:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 20px rgba(46, 160, 67, 0.3);
+      }
+      .btn-start:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+      .controls {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 8px;
+      }
+      .btn-control {
+        width: 100px;
+        padding: 10px 0;
+        border: 2px solid #30363d;
+        border-radius: 10px;
+        background: #161b22;
+        color: #e6edf3;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .btn-control:hover {
+        border-color: #58a6ff;
+        background: #1f2937;
+      }
+      .btn-control.pause {
+        border-color: #d29922;
+        color: #d29922;
+      }
+      .btn-control.resume {
+        border-color: #3fb950;
+        color: #3fb950;
+      }
+      .btn-control.stop {
+        border-color: #f85149;
+        color: #f85149;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .section-title {
+        font-size: 11px;
+        color: #484f58;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-top: 24px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .section-title::before,
+      .section-title::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #21262d;
+      }
+      .toggle-header {
+        cursor: pointer;
+        transition: color 0.2s;
+      }
+      .toggle-header:hover {
+        color: #8b949e;
+      }
+      .toggle-header span {
+        pointer-events: none;
+      }
+      .toggle-arrow {
+        background: none;
+        border: none;
+        color: #484f58;
+        font-size: 10px;
+        cursor: pointer;
+        transition:
+          transform 0.2s,
+          color 0.2s;
+        padding: 0 4px;
+      }
+      .toggle-arrow.open {
+        transform: rotate(90deg);
+        color: #58a6ff;
+      }
+      .toggle-header:hover .toggle-arrow {
+        color: #8b949e;
+      }
+      .sound-settings {
+        overflow: hidden;
+        transition:
+          max-height 0.3s ease,
+          opacity 0.3s ease,
+          margin 0.3s ease,
+          padding 0.3s ease;
+      }
+      .sound-settings.collapsed {
+        max-height: 0;
+        opacity: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin: 0;
+        border-color: transparent;
+      }
+      .sound-settings.expanded {
+        max-height: 500px;
+        opacity: 1;
+      }
+      .sound-settings {
+        background: #161b22;
+        border: 1px solid #21262d;
+        border-radius: 12px;
+        padding: 16px;
+        text-align: left;
+      }
+      .sound-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .sound-row:last-child {
+        margin-bottom: 0;
+      }
+      .sound-row label {
+        font-size: 12px;
+        color: #8b949e;
+        min-width: 55px;
+      }
+      .sound-select {
+        flex: 1;
+        height: 34px;
+        background: #0d1117;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        color: #e6edf3;
+        font-size: 12px;
+        padding: 0 10px;
+        outline: none;
+        cursor: pointer;
+        font-family: "Segoe UI", sans-serif;
+      }
+      .sound-select:focus {
+        border-color: #58a6ff;
+      }
+      .sound-select option {
+        background: #0d1117;
+        color: #e6edf3;
+      }
+      .btn-sm {
+        padding: 6px 12px;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        background: #0d1117;
+        color: #8b949e;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+      }
+      .btn-sm:hover {
+        border-color: #58a6ff;
+        color: #58a6ff;
+      }
+      .btn-sm.playing {
+        border-color: #f85149;
+        color: #f85149;
+      }
+      .volume-slider {
+        flex: 1;
+        -webkit-appearance: none;
+        height: 4px;
+        background: #30363d;
+        border-radius: 2px;
+        outline: none;
+      }
+      .volume-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #58a6ff;
+        cursor: pointer;
+        border: 2px solid #0d1117;
+      }
+      .volume-value {
+        font-size: 11px;
+        color: #484f58;
+        min-width: 32px;
+        text-align: right;
+        font-family: Consolas, monospace;
+      }
+      .custom-file-row {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #21262d;
+      }
+      .custom-file-name {
+        font-size: 11px;
+        color: #58a6ff;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 160px;
+      }
+      .custom-file-name.none {
+        color: #484f58;
+        font-style: italic;
+      }
+      .toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+      .toggle {
+        width: 36px;
+        height: 20px;
+        border-radius: 10px;
+        background: #30363d;
+        position: relative;
+        transition: background 0.2s;
+        cursor: pointer;
+        border: none;
+      }
+      .toggle::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #8b949e;
+        transition: all 0.2s;
+      }
+      .toggle.on {
+        background: #238636;
+      }
+      .toggle.on::after {
+        left: 19px;
+        background: #3fb950;
+      }
+      .footer {
+        margin-top: 20px;
+        font-size: 11px;
+        color: #484f58;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="header">⏱ Timex</div>
+      <div class="countdown" id="cd">00:00</div>
+      <div class="progress-track">
+        <div class="progress-fill" id="pf"></div>
+      </div>
+      <div class="status" id="st">Set a time and press Start</div>
+      <div class="alarm-banner" id="ab">
+        <span>🔔 Alarm ringing!</span
+        ><button class="btn-dismiss" id="db">Dismiss</button>
+      </div>
+
+      <div id="sv">
+        <div class="input-section">
+          <div class="time-inputs">
+            <div class="time-input-group">
+              <label>Hours</label
+              ><input type="number" id="ih" min="0" max="99" value="0" />
+            </div>
+            <span class="time-sep">:</span>
+            <div class="time-input-group">
+              <label>Minutes</label
+              ><input type="number" id="im" min="0" max="59" value="5" />
+            </div>
+            <span class="time-sep">:</span>
+            <div class="time-input-group">
+              <label>Seconds</label
+              ><input type="number" id="is" min="0" max="59" value="0" />
+            </div>
+          </div>
+          <div class="presets" id="presets"></div>
+        </div>
+        <button class="btn btn-start" id="sb">▶ &nbsp;START</button>
+
+        <div class="section-title toggle-header" id="sth">
+          <span>🔊 Alarm Sound</span>
+          <button class="toggle-arrow" id="sta">▶</button>
+        </div>
+        <div class="sound-settings" id="ss-panel" style="display: none">
+          <div class="sound-row">
+            <label>Sound</label>
+            <select class="sound-select" id="ss">
+              <option value="alarm">🚨 Alarm</option>
+              <option value="beep">🔔 Beep</option>
+              <option value="chime">🎵 Chime</option>
+              <option value="digital">⌚ Digital</option>
+              <option value="gentle">🌊 Gentle</option>
+              <option value="siren">🚑 Siren</option>
+              <option value="custom">📁 Custom File</option>
+              <option value="none">🔇 No Sound</option>
+            </select>
+            <button class="btn-sm" id="pb">▶ Test</button>
+          </div>
+          <div class="sound-row">
+            <label>Volume</label>
+            <input
+              type="range"
+              class="volume-slider"
+              id="vs"
+              min="0"
+              max="100"
+              value="70"
+            />
+            <span class="volume-value" id="vv">70%</span>
+          </div>
+          <div class="sound-row">
+            <label>Repeat</label>
+            <div class="toggle-container" id="ltc">
+              <button class="toggle on" id="lt"></button>
+              <span style="font-size: 12px; color: #8b949e" id="ll"
+                >Loop until dismissed</span
+              >
+            </div>
+          </div>
+          <div class="sound-row custom-file-row" id="cfr" style="display: none">
+            <label>File</label>
+            <span class="custom-file-name none" id="cfn">No file selected</span>
+            <button class="btn-sm" id="bfb">Browse...</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="rv" class="hidden">
+        <div class="controls">
+          <button class="btn-control pause" id="ppb">⏸ Pause</button>
+          <button class="btn-control stop" id="stb">⏹ Stop</button>
+          <button class="btn-control" id="rsb">🔄 Restart</button>
+        </div>
+      </div>
+      <div class="footer">
+        Runs in system tray when closed • Right-click tray for controls
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+        const $ = (id) => document.getElementById(id);
+        const cd = $("cd"),
+          pf = $("pf"),
+          st = $("st"),
+          sv = $("sv"),
+          rv = $("rv");
+        const ab = $("ab"),
+          db = $("db");
+        const ih = $("ih"),
+          im = $("im"),
+          is_ = $("is"),
+          sb = $("sb"),
+          ppb = $("ppb");
+        const ss = $("ss"),
+          pb = $("pb"),
+          vs = $("vs"),
+          vv = $("vv");
+        const lt = $("lt"),
+          ll = $("ll"),
+          ltc = $("ltc");
+        const cfr = $("cfr"),
+          cfn = $("cfn"),
+          bfb = $("bfb");
+        const stb = $("stb"),
+          rsb = $("rsb");
+        const sth = $("sth"),
+          sta = $("sta"),
+          ssp = $("ss-panel");
+
+        let state = {},
+          soundCfg = {
+            selected: "alarm",
+            volume: 0.7,
+            loop: true,
+            customBase64: null,
+            customPath: null,
+          };
+        let audioCtx = null,
+          nodes = [],
+          customAud = null,
+          previewing = false,
+          alarming = false;
+        let loopT = null,
+          prevT = null,
+          cfgT = null;
+        let prevDisp = "",
+          prevCls = "",
+          prevPct = -1,
+          prevView = false;
+        let soundOpen = false;
+
+        sth.onclick = () => {
+          soundOpen = !soundOpen;
+          sta.classList.toggle("open", soundOpen);
+          if (soundOpen) {
+            ssp.style.display = "";
+            ssp.classList.remove("collapsed");
+            ssp.classList.add("expanded");
+          } else {
+            ssp.classList.remove("expanded");
+            ssp.classList.add("collapsed");
+            setTimeout(() => {
+              if (!soundOpen) ssp.style.display = "none";
+            }, 300);
+          }
+        };
+
+        const presetsEl = $("presets");
+        [
+          [1, "1 min"],
+          [5, "5 min"],
+          [10, "10 min"],
+          [15, "15 min"],
+          [25, "25 min"],
+          [30, "30 min"],
+          [45, "45 min"],
+          [60, "1 hr"],
+        ].forEach(([m, l]) => {
+          const b = document.createElement("button");
+          b.className = "preset-btn";
+          b.textContent = l;
+          b.onclick = () => {
+            ih.value = (m / 60) | 0;
+            im.value = m % 60;
+            is_.value = 0;
+            val();
+          };
+          presetsEl.appendChild(b);
+        });
+
+        function ctx() {
+          if (!audioCtx)
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          if (audioCtx.state === "suspended") audioCtx.resume();
+          return audioCtx;
+        }
+
+        function note(c, d, f, ty, t, dur, v) {
+          const o = c.createOscillator(),
+            g = c.createGain();
+          o.type = ty;
+          o.frequency.value = f;
+          g.gain.setValueAtTime(v, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+          o.connect(g);
+          g.connect(d);
+          o.start(t);
+          o.stop(t + dur);
+          nodes.push(o, g);
+        }
+
+        const SND = {
+          beep(c, v) {
+            const g = c.createGain();
+            g.connect(c.destination);
+            for (let i = 0; i < 3; i++)
+              note(c, g, 880, "sine", c.currentTime + i * 0.3, 0.15, v);
+            return 1.2;
+          },
+          alarm(c, v) {
+            const g = c.createGain();
+            g.connect(c.destination);
+            for (let i = 0; i < 4; i++) {
+              note(
+                c,
+                g,
+                800,
+                "square",
+                c.currentTime + i * 0.35,
+                0.12,
+                v * 0.4,
+              );
+              note(
+                c,
+                g,
+                1200,
+                "square",
+                c.currentTime + i * 0.35 + 0.15,
+                0.12,
+                v * 0.4,
+              );
+            }
+            return 1.8;
+          },
+          chime(c, v) {
+            const g = c.createGain();
+            g.connect(c.destination);
+            [523, 659, 784, 1047].forEach((f, i) =>
+              note(c, g, f, "sine", c.currentTime + i * 0.2, 0.8, v * 0.6),
+            );
+            return 1.6;
+          },
+          digital(c, v) {
+            const g = c.createGain();
+            g.connect(c.destination);
+            for (let i = 0; i < 6; i++)
+              note(
+                c,
+                g,
+                2000,
+                "square",
+                c.currentTime + i * 0.15,
+                0.06,
+                v * 0.25,
+              );
+            return 1.4;
+          },
+          gentle(c, v) {
+            const g = c.createGain();
+            g.connect(c.destination);
+            [440, 554, 659].forEach((f, i) =>
+              note(c, g, f, "sine", c.currentTime + i * 0.5, 1.2, v * 0.5),
+            );
+            return 2.5;
+          },
+          siren(c, v) {
+            const o = c.createOscillator(),
+              g = c.createGain();
+            o.type = "sawtooth";
+            const t = c.currentTime;
+            o.frequency.setValueAtTime(400, t);
+            o.frequency.linearRampToValueAtTime(1200, t + 0.5);
+            o.frequency.linearRampToValueAtTime(400, t + 1);
+            o.frequency.linearRampToValueAtTime(1200, t + 1.5);
+            g.gain.setValueAtTime(v * 0.25, t);
+            g.gain.setValueAtTime(v * 0.25, t + 1.8);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 2);
+            o.connect(g);
+            g.connect(c.destination);
+            o.start(t);
+            o.stop(t + 2);
+            nodes.push(o, g);
+            return 2.2;
+          },
+        };
+
+        function play(n, v, lp) {
+          stopAll();
+          alarming = true;
+          if (n === "none") return;
+          if (n === "custom" && soundCfg.customBase64) {
+            customAud = new Audio(soundCfg.customBase64);
+            customAud.volume = v;
+            customAud.loop = lp;
+            customAud.play().catch(() => {});
+            return;
+          }
+          const fn = SND[n];
+          if (!fn) return;
+          const dur = fn(ctx(), v);
+          if (lp) {
+            loopT = setInterval(
+              () => {
+                if (!alarming) {
+                  clearInterval(loopT);
+                  loopT = null;
+                  return;
+                }
+                fn(ctx(), v);
+              },
+              dur * 1000 + 2000,
+            );
+          }
+        }
+
+        function stopAll() {
+          alarming = false;
+          for (let i = 0; i < nodes.length; i++) {
+            try {
+              nodes[i].stop();
+            } catch (_) {}
+            try {
+              nodes[i].disconnect();
+            } catch (_) {}
+          }
+          nodes.length = 0;
+          if (loopT) {
+            clearInterval(loopT);
+            loopT = null;
+          }
+          if (customAud) {
+            customAud.pause();
+            customAud.currentTime = 0;
+            customAud = null;
+          }
+          ab.classList.remove("active");
+        }
+
+        function secs() {
+          return (
+            Math.max(0, parseInt(ih.value) || 0) * 3600 +
+            Math.max(0, parseInt(im.value) || 0) * 60 +
+            Math.max(0, parseInt(is_.value) || 0)
+          );
+        }
+        function val() {
+          sb.disabled = secs() <= 0;
+        }
+        ih.oninput = im.oninput = is_.oninput = val;
+        ih.onfocus = () => ih.select();
+        im.onfocus = () => im.select();
+        is_.onfocus = () => is_.select();
+
+        sb.onclick = () => {
+          const s = secs();
+          if (s > 0) window.timerAPI.start(s);
+        };
+        ppb.onclick = () =>
+          state.paused ? window.timerAPI.resume() : window.timerAPI.pause();
+        stb.onclick = () => window.timerAPI.stop();
+        rsb.onclick = () => window.timerAPI.restart();
+        db.onclick = () => {
+          stopAll();
+          window.timerAPI.dismissAlarm();
+        };
+
+        function saveSnd() {
+          if (cfgT) clearTimeout(cfgT);
+          cfgT = setTimeout(() => {
+            window.timerAPI.updateSoundConfig({
+              selected: soundCfg.selected,
+              volume: soundCfg.volume,
+              loop: soundCfg.loop,
+              customPath: soundCfg.customPath,
+            });
+            cfgT = null;
+          }, 300);
+        }
+
+        ss.onchange = () => {
+          soundCfg.selected = ss.value;
+          cfr.style.display = ss.value === "custom" ? "flex" : "none";
+          saveSnd();
+        };
+        vs.oninput = () => {
+          const v = parseInt(vs.value);
+          vv.textContent = v + "%";
+          soundCfg.volume = v / 100;
+          saveSnd();
+        };
+        ltc.onclick = () => {
+          soundCfg.loop = !soundCfg.loop;
+          lt.classList.toggle("on", soundCfg.loop);
+          ll.textContent = soundCfg.loop ? "Loop until dismissed" : "Play once";
+          saveSnd();
+        };
+        bfb.onclick = async () => {
+          const r = await window.timerAPI.browseSoundFile();
+          if (r) {
+            soundCfg.customPath = r.path;
+            soundCfg.customBase64 = r.base64;
+            soundCfg.selected = "custom";
+            ss.value = "custom";
+            cfr.style.display = "flex";
+            cfn.textContent = r.name;
+            cfn.className = "custom-file-name";
+            saveSnd();
+          }
+        };
+        pb.onclick = () => {
+          if (previewing) {
+            stopAll();
+            previewing = false;
+            pb.textContent = "▶ Test";
+            pb.classList.remove("playing");
+            if (prevT) {
+              clearTimeout(prevT);
+              prevT = null;
+            }
+            return;
+          }
+          previewing = true;
+          pb.textContent = "⏹ Stop";
+          pb.classList.add("playing");
+          play(ss.value, parseInt(vs.value) / 100, false);
+          prevT = setTimeout(() => {
+            if (previewing) {
+              previewing = false;
+              pb.textContent = "▶ Test";
+              pb.classList.remove("playing");
+            }
+            prevT = null;
+          }, 3000);
+        };
+
+        document.onkeydown = (e) => {
+          if (document.activeElement.tagName === "INPUT") {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (!state.running) sb.click();
+            }
+            return;
+          }
+          switch (e.code) {
+            case "Space":
+              e.preventDefault();
+              state.running ? ppb.click() : sb.click();
+              break;
+            case "Escape":
+              e.preventDefault();
+              window.timerAPI.stop();
+              break;
+            case "KeyR":
+              e.preventDefault();
+              window.timerAPI.restart();
+              break;
+            case "KeyD":
+              e.preventDefault();
+              stopAll();
+              window.timerAPI.dismissAlarm();
+              break;
+          }
+        };
+
+        window.timerAPI.onUpdate((d) => {
+          state = d;
+          if (d.display !== prevDisp) {
+            prevDisp = d.display;
+            cd.textContent = d.display;
+          }
+          const cls =
+            d.running && !d.paused ? "running" : d.paused ? "paused" : "";
+          if (cls !== prevCls) {
+            prevCls = cls;
+            cd.className = "countdown" + (cls ? " " + cls : "");
+          }
+          if (d.initial > 0) {
+            const p = ((d.remaining / d.initial) * 100) | 0;
+            if (p !== prevPct) {
+              prevPct = p;
+              pf.style.width = p + "%";
+              pf.className = "progress-fill" + (d.paused ? " paused" : "");
+            }
+          }
+          if (d.running && !d.paused)
+            st.textContent = "⏱ Running — " + d.display + " remaining";
+          else if (d.paused)
+            st.textContent = "⏸ Paused — " + d.display + " remaining";
+          else st.textContent = "Set a time and press Start";
+          if (d.paused) {
+            ppb.textContent = "▶ Resume";
+            ppb.className = "btn-control resume";
+          } else {
+            ppb.textContent = "⏸ Pause";
+            ppb.className = "btn-control pause";
+          }
+          if (d.running !== prevView) {
+            prevView = d.running;
+            sv.classList.toggle("hidden", d.running);
+            rv.classList.toggle("hidden", !d.running);
+          }
+        });
+
+        window.timerAPI.onFinished(() => {
+          cd.textContent = "00:00";
+          cd.className = "countdown finished";
+          pf.className = "progress-fill finished";
+          st.textContent = "⏰ Time's up!";
+          prevDisp = "00:00";
+          prevCls = "finished";
+          prevPct = 0;
+          setTimeout(() => {
+            if (!alarming) {
+              cd.className = "countdown";
+              st.textContent = "Set a time and press Start";
+              pf.style.width = "100%";
+              pf.className = "progress-fill";
+              prevCls = "";
+              prevPct = 100;
+            }
+          }, 5000);
+        });
+
+        window.timerAPI.onSoundConfig((c) => {
+          Object.assign(soundCfg, c);
+          ss.value = soundCfg.selected;
+          vs.value = Math.round(soundCfg.volume * 100);
+          vv.textContent = Math.round(soundCfg.volume * 100) + "%";
+          lt.classList.toggle("on", soundCfg.loop);
+          ll.textContent = soundCfg.loop ? "Loop until dismissed" : "Play once";
+          cfr.style.display = soundCfg.selected === "custom" ? "flex" : "none";
+          if (soundCfg.customPath) {
+            cfn.textContent = soundCfg.customPath.split(/[/\\]/).pop();
+            cfn.className = "custom-file-name";
+          }
+        });
+
+        window.timerAPI.onPlayAlarm((c) => {
+          Object.assign(soundCfg, c);
+          play(soundCfg.selected, soundCfg.volume, soundCfg.loop);
+          ab.classList.add("active");
+        });
+        window.timerAPI.onStopAlarm(() => stopAll());
+
+        val();
+        im.focus();
+      })();
+    </script>
+  </body>
+</html>
